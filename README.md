@@ -90,11 +90,14 @@ npx serve
 | System Settings               | ✅    | ❌     | ❌         | ❌        |
 
 
-📄 License
+## 📄 License
+
 MIT License © 2025
 
-👨‍💻 Author
+## 👨‍💻 Author
+
 Sathvik A R
 
 Drug-Sync Nexus – Because every pill deserves precision and every patient deserves safety. 💊✨
+
 ⭐ Star this repo if you found it useful!
