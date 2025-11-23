@@ -1,104 +1,102 @@
-Drug-Sync Nexus: Pharmacy Management Dashboard
-A full-stack, role-based pharmacy management system—supporting secure billing, OCR-based prescription scanning, inventory tracking, role-driven access, and integration with QR code traceability for medication safety.
+# 🧬 Drug-Sync Nexus  
+### The Next-Gen Pharmacy Management Dashboard – Secure, Intelligent, Full-Stack
 
-🚀 Features
-Secure Authentication: User registration and login with hashed passwords and JWT sessions.
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-v20-6cc24a?logo=nodedotjs)](https://nodejs.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4.4+-47A248?logo=mongodb)](https://mongodb.com)
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red)](https://github.com/sathvikradhikam)
 
-Role-Based Access:
+> A **role-based, OCR-powered, QR-traceable** pharmacy ecosystem that brings hospital-grade precision and safety to every counter.
 
-Admin: Full access to all modules
+![Drug-Sync Nexus Preview](https://i.imgur.com/YourScreenshotHere.png)  
+*(Replace the link above with an actual sleek screenshot of your dashboard)*
 
-Pharmacist: Prescription, inventory, billing
+## 🚀 Why Drug-Sync Nexus is Different
 
-Doctor: Prescription module only
+| Feature                          | Traditional Systems | Drug-Sync Nexus                          |
+|----------------------------------|---------------------|------------------------------------------|
+| Prescription Entry               | Manual typing only  | **OCR scanning** (Tesseract.js) + manual |
+| Medication Traceability          | None / Barcode      | **Encrypted QR** with batch, expiry, dosage |
+| Access Control                   | Basic roles         | Granular RBAC (Admin → Doctor → Pharmacist → Staff) |
+| Billing                          | Error-prone         | Auto-tax, discount, **PDF receipts** (jsPDF) |
+| Expiry & Stock Alerts            | Manual checks       | Real-time dashboard alerts               |
+| Deployment                       | Heavy desktop apps  | Pure web – works on any device           |
 
-Staff: Configurable minimum access
+## ✨ Killer Features
 
-Inventory Management: Add, edit, search, and monitor medicines with real-time stock and expiry alerts.
+- 🔐 **Secure Auth** – JWT + bcrypt hashed passwords  
+- 👥 **Role-Based Access Control** (Admin / Doctor / Pharmacist / Staff)  
+- 🏥 **Smart Prescription Module**  
+  - Upload handwritten/digital prescription → instant OCR extraction  
+  - Edit & confirm before saving  
+- 📦 **Real-Time Inventory** with low-stock & expiry alerts  
+- 🧾 **Professional Billing** – tax, discount, instant PDF invoice & prescription print  
+- 📊 **Live Analytics Dashboard** – sales, stock levels, recent activity  
+- 🔗 **QR Traceability Integration** (separate Python microservice)  
+  → Generates tamper-proof QR labels containing:  
+  `Patient | Drug | Dosage | Batch | Expiry | Auth Code`  
 
-Prescription Module:
+## 🛠 Tech Stack
 
-Manual & OCR-based entry using Tesseract.js (browser-based prescription text extraction)
+| Layer         | Technology                                                                 |
+|---------------|----------------------------------------------------------------------------|
+| Frontend      | HTML5, CSS3, Vanilla JS (ES6), Tesseract.js, jsPDF                         |
+| Backend       | Node.js + Express.js                                                       |
+| Auth          | JWT + bcrypt                                                               |
+| Database      | MongoDB (Mongoose ODM)                                                     |
+| QR Service    | Python FastAPI/Flask + qrcode + Pillow (modular & scalable)                |
+| Deployment    | Works locally or on any static + Node host (Render, Vercel + Railway, etc.)|
 
-Edit and confirm extracted content before saving
+## Quick Start
 
-Billing & Invoicing: Automated, accurate bill generation with tax/discount, PDF printing for receipts and prescriptions (jsPDF).
+```bash
+# Clone the repo
+git clone https://github.com/sathvikradhikam/Drug-Sync-Nexus.git
+cd Drug-Sync-Nexus
 
-Dashboard & Analytics: Real-time statistics and alerts for sales, stock, and recent activities.
-
-QR Code Integration:
-
-Integrates with a Python QR code service (see separate QR project: Pharmacetical-QR)
-
-Generates QR labels for medication packaging, encoding dosing, expiry, batch, and safety data.
-
-🛠️ Tech Stack
-Frontend: HTML5, CSS3, JavaScript (ES6), Tesseract.js, jsPDF
-
-Backend: Node.js, Express.js, JWT, bcrypt, Mongoose (MongoDB)
-
-Database: MongoDB (collections: users, medicines, prescriptions, bills, etc.)
-
-QR Service: Python (Flask/FastAPI), qrcode, Pillow (see separate QR module)
-
-📦 Installation
-Clone the Repository:
-
-text
-git clone https://github.com/yourusername/your-pharmacy-dashboard.git
-cd your-pharmacy-dashboard
-Install Backend Dependencies:
-
-text
+# Install backend dependencies
 npm install
-Configure Environment Variables:
 
-Copy .env.example to .env
+# Set up environment variables
+cp .env.example .env
+# Edit .env → add your MongoDB URI & strong JWT secret
 
-Add your MongoDB URI and JWT secret:
-
-text
-MONGODB_URI=mongodb://localhost:27017/drug_sync_nexus
-JWT_SECRET=your_super_secret_jwt_key
-Run the Server:
-
-text
+# Start the server (use nodemon for auto-restart)
+nodemon server.js
+# or
 node server.js
-(Or use nodemon for hot reload)
 
-Frontend Use:
+# Open frontend
+Open index.html in browser OR serve the public folder:
+npx serve
+```
 
-Open index.html in your browser, or serve the folder with a simple static server.
+
+## Modules & Role-Based Permissions
+
+| Feature / Module              | Admin | Doctor | Pharmacist | Staff     |
+|-------------------------------|-------|--------|------------|-----------|
+| Dashboard & Analytics         | ✅    | ✅     | ✅         | Limited   |
+| User Management               | ✅    | ❌     | ❌         | ❌        |
+| Add/Edit/Delete Medicines     | ✅    | ❌     | ✅         | ❌        |
+| View Medicine Inventory       | ✅    | ✅     | ✅         | ✅ (View) |
+| Create Prescription           | ✅    | ✅     | ✅         | ❌        |
+| OCR Prescription Scanning     | ✅    | ✅     | ✅         | ❌        |
+| Edit/Approve Prescription     | ✅    | ❌     | ✅         | ❌        |
+| Generate QR Code Labels       | ✅    | ❌     | ✅         | ❌        |
+| Billing & Invoicing           | ✅    | ❌     | ✅         | ✅        |
+| Apply Discount / Tax          | ✅    | ❌     | ✅         | ✅ (Limited) |
+| Print Receipts & Prescriptions| ✅    | ❌     | ✅         | ✅        |
+| View Bills History            | ✅    | ✅     | ✅         | ✅ (Own)  |
+| Low Stock & Expiry Alerts    | ✅    | ✅     | ✅         | ✅ (View) |
+| System Settings               | ✅    | ❌     | ❌         | ❌        |
 
 
-💡 Usage
-Register: Create an account with full name, email, password, and select a role.
+📄 License
+MIT License © 2025
 
-Login: Enter your credentials and access authorized modules.
+👨‍💻 Author
+Sathvik A R
 
-Inventory: Add and manage medicines; monitor for stock and expiry.
-
-Prescriptions: Doctors upload or write prescriptions; pharmacists can OCR scan and dispense.
-
-QR Code: On fulfilling a prescription, generate and print QR for packaging.
-
-Billing: Create bills, apply discounts/tax, and print receipts.
-
-📖 License
-This project is licensed under the MIT License.
-
-🤝 Acknowledgements
-Tesseract.js for OCR
-
-MongoDB
-
-Node.js
-
-Express.js
-
-jsPDF
-
-Pharmacetical-QR for QR integration
-
-🌐 Authors
-Sathvik Radhikam — GitHub
+Drug-Sync Nexus – Because every pill deserves precision and every patient deserves safety. 💊✨
+⭐ Star this repo if you found it useful!
