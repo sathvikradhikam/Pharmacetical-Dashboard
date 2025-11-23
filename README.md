@@ -8,8 +8,6 @@
 
 > A **role-based, OCR-powered, QR-traceable** pharmacy ecosystem that brings hospital-grade precision and safety to every counter.
 
-![Drug-Sync Nexus Preview](https://i.imgur.com/YourScreenshotHere.png)  
-*(Replace the link above with an actual sleek screenshot of your dashboard)*
 
 ## 🚀 Why Drug-Sync Nexus is Different
 
