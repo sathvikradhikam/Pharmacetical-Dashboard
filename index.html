@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drug-Sync Nexus - Pharmacy Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Login Modal -->
+<div id="loginModal" class="modal login-modal" style="display: block;">
+    <div class="modal-content login-content">
+        <div class="login-header">
+            <div class="brand-logo">
+                <i class="fas fa-capsules"></i>
+                <h2>Drug-Sync Nexus</h2>
+            </div>
+            <p>Welcome back! Please sign in to continue.</p>
+        </div>
+        
+        <form id="loginForm" class="auth-form">
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email">
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn-login">
+                <span>Sign In</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <button type="button" class="link-btn" onclick="showRegisterModal()">Create Account</button></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+    <!-- Registration Modal -->
+<div id="registerModal" class="modal" style="display: none;">
+    <div class="modal-content login-content">
+        <div class="login-header">
+            <div class="brand-logo">
+                <i class="fas fa-user-plus"></i>
+                <h2>Create Account</h2>
+            </div>
+            <p>Join Drug-Sync Nexus</p>
+        </div>
+        
+        <form id="registerForm" class="register-form">
+            <div class="input-group">
+                <label>Full Name *</label>
+                <input type="text" id="regFullName" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Email *</label>
+                <input type="email" id="regEmail" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Password *</label>
+                <input type="password" id="regPassword" placeholder="Enter password (min 6 characters)" required minlength="6">
+            </div>
+            
+            <button type="submit" class="btn-login">
+                <span>Create Account</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <button type="button" class="link-btn" onclick="closeRegisterModal()">Sign In</button></p>
+            </div>
+            <div class="input-group">
+  <label for="regRole">Select Role *</label>
+  <select id="regRole" required>
+    <option value="">Choose your role</option>
+    <option value="doctor">Doctor</option>
+    <option value="pharmacist">Pharmacist</option>
+    <option value="staff">Staff</option>
+  </select>
+</div>
+
+
+
+
+        </form>
+    </div>
+</div>
+
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Modern Collapsible Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <div class="modern-logo">
+                        <div class="pill-icon">💊</div>
+                    </div>
+                    <span class="brand-text">Drug-Sync Nexus</span>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="nav-link active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a></li>
+                <li><a href="#prescriptions" class="nav-link" data-page="prescriptions">
+                    <i class="fas fa-prescription"></i>
+                    <span class="nav-text">Prescriptions</span>
+                </a></li>
+                <li><a href="#billing" class="nav-link" data-page="billing">
+                    <i class="fas fa-receipt"></i>
+                    <span class="nav-text">Billing</span>
+                </a></li>
+                <li><a href="#inventory" class="nav-link" data-page="inventory">
+                    <i class="fas fa-warehouse"></i>
+                    <span class="nav-text">Inventory</span>
+                </a></li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span id="userFullName" class="user-name">User</span>
+                        <small id="userRole" class="user-role">Role</small>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Modern Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="header-btn" onclick="loadDashboardData()" title="Refresh">
+                            <i class="fas fa-refresh"></i>
+                        </button>
+                        <div class="notifications">
+                            <button class="header-btn notification-btn">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notificationCount">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Dashboard Page -->
+                <div id="dashboard" class="page active">
+                    <!-- Stats Cards -->
+                    <div class="stats-container">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">
+                                <i class="fas fa-prescription-bottle-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Today's Prescriptions</h3>
+                                <div class="stat-number" id="todayPrescriptions">0</div>
+                                <span class="stat-change positive">+12% from yesterday</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card success">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Daily Revenue</h3>
+                                <div class="stat-number" id="todayRevenue">₹0</div>
+                                <span class="stat-change positive">+8% from yesterday</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card warning">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Low Stock Alerts</h3>
+                                <div class="stat-number" id="lowStockCount">0</div>
+                                <span class="stat-change negative">Needs attention</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card info">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Customers Served</h3>
+                                <div class="stat-number" id="todayCustomers">0</div>
+                                <span class="stat-change positive">+5% from yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Content Grid -->
+                    <div class="dashboard-grid">
+                        <!-- Quick Actions -->
+                        <div class="dashboard-card quick-actions-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-lightning-bolt"></i> Quick Actions</h3>
+                            </div>
+                            <div class="quick-actions-grid">
+                                <button class="quick-action-btn" onclick="navigateToPage('prescriptions')">
+                                    <div class="action-icon prescription">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <span>New Prescription</span>
+                                </button>
+                                
+                                <button class="quick-action-btn" onclick="navigateToPage('billing')">
+                                    <div class="action-icon billing">
+                                        <i class="fas fa-calculator"></i>
+                                    </div>
+                                    <span>Generate Bill</span>
+                                </button>
+                                
+                                <button class="quick-action-btn" onclick="navigateToPage('inventory')">
+                                    <div class="action-icon inventory">
+                                        <i class="fas fa-boxes"></i>
+                                    </div>
+                                    <span>Check Inventory</span>
+                                </button>
+                                
+                                <button class="quick-action-btn" onclick="generateReports()">
+                                    <div class="action-icon reports">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <span>View Reports</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="dashboard-card activity-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                                <button class="refresh-btn" onclick="loadDashboardData()">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                            </div>
+                            <div class="activity-list" id="activityList">
+                                <div class="activity-loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Loading activities...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alerts -->
+                        <div class="dashboard-card alerts-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-bell"></i> Alerts & Notifications</h3>
+                            </div>
+                            <div class="alerts-content" id="alertsContent">
+                                <div class="alert-item low-stock">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <div class="alert-text">
+                                        <strong>Low Stock Alert</strong>
+                                        <p>Several medicines are running low on stock</p>
+                                    </div>
+                                    <button class="alert-action" onclick="navigateToPage('inventory')">View</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prescriptions Page -->
+                <div id="prescriptions" class="page">
+                    <div class="page-header">
+                        <div class="page-title">
+                            <h2>Prescription Management</h2>
+                            <p>Manage patient prescriptions and scan prescription images</p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn-secondary" onclick="loadPrescriptions()">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                            <button class="btn-primary" onclick="switchTab('manual')">
+                                <i class="fas fa-plus"></i> New Prescription
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Prescriptions
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3>Recent Prescriptions</h3>
+                            <div class="filters">
+                                <input type="text" id="prescriptionSearch" placeholder="Search prescriptions..." class="search-input">
+                                <select id="prescriptionStatusFilter" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="dispensed">Dispensed</option>
+                                    <option value="partially-dispensed">Partially Dispensed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prescription-list" id="prescriptionList">
+                            <div class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading prescriptions...</span>
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- Prescription Form -->
+                    <div class="content-card">
+                        <div class="prescription-tabs">
+                            <button class="tab-btn active" data-tab="manual">
+                                <i class="fas fa-edit"></i> Manual Entry
+                            </button>
+                            <button class="tab-btn" data-tab="scan">
+                                <i class="fas fa-camera"></i> Scan Prescription
+                            </button>
+                        </div>
+
+                        <!-- Manual Entry Tab -->
+                        <div id="manual-tab" class="tab-content active">
+                            <div id="prescriptionPreview" class="prescription-preview">
+                                <div class="prescription-header-preview">
+                                    <div class="clinic-info">
+                                        <h2>Drug-Sync Nexus Pharmacy</h2>
+                                        <p>123 Medical Street, Healthcare City</p>
+                                        <p>Phone: +91-9876543210 | Email: info@drugsyncnexus.com</p>
+                                    </div>
+                                    <div class="prescription-id">
+                                        <span>Prescription ID: <span id="previewPrescriptionId">PRESC-001</span></span>
+                                        <span>Date: <span id="previewDate"></span></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="patient-doctor-info">
+                                    <div class="patient-info-preview">
+                                        <h4>Patient Information</h4>
+                                        <p><strong>Name:</strong> <span id="previewPatientName">-</span></p>
+                                        <p><strong>Age:</strong> <span id="previewPatientAge">-</span></p>
+                                        <p><strong>Phone:</strong> <span id="previewPatientPhone">-</span></p>
+                                    </div>
+                                    <div class="doctor-info-preview">
+                                        <h4>Doctor Information</h4>
+                                        <p><strong>Doctor:</strong> <span id="previewDoctorName">-</span></p>
+                                        <p><strong>Diagnosis:</strong> <span id="previewDiagnosis">-</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="medicines-preview">
+                                    <h4>Prescribed Medicines</h4>
+                                    <table class="medicines-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Medicine</th>
+                                                <th>Dosage</th>
+                                                <th>Frequency</th>
+                                                <th>Duration</th>
+                                                <th>Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="previewMedicinesBody">
+                                            <tr>
+                                                <td colspan="5" class="no-medicines">No medicines added</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="prescription-footer-preview">
+                                    <div class="notes-preview">
+                                        <strong>Notes:</strong> <span id="previewNotes">-</span>
+                                    </div>
+                                    <div class="signature">
+                                        <p>____________________</p>
+                                        <p>Pharmacist Signature</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="prescription-actions-preview">
+                                    <button class="btn-primary" onclick="printPrescription()">
+                                        <i class="fas fa-print"></i> Print Prescription
+                                    </button>
+                                    <button class="btn-secondary" onclick="savePrescriptionAsPDF()">
+                                        <i class="fas fa-file-pdf"></i> Save as PDF
+                                    </button>
+                                </div>
+                            </div>
+
+                            <form id="prescriptionForm" class="prescription-form">
+                                <div class="form-section">
+                                    <h4>Patient Information</h4>
+                                    <div class="form-grid">
+                                        <div class="input-group">
+                                            <label>Patient Name *</label>
+                                            <input type="text" id="patientName" placeholder="Enter patient name" required onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Patient ID</label>
+                                            <input type="text" id="patientId" placeholder="Enter patient ID" onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Phone Number</label>
+                                            <input type="tel" id="patientPhone" placeholder="Enter phone number" onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Age</label>
+                                            <input type="number" id="patientAge" placeholder="Enter age" min="0" max="150" onchange="updatePrescriptionPreview()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h4>Doctor Information</h4>
+                                    <div class="form-grid">
+                                        <div class="input-group">
+                                            <label>Doctor Name *</label>
+                                            <input type="text" id="doctorName" placeholder="Enter doctor name" required onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Date *</label>
+                                            <input type="date" id="prescriptionDate" required onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Diagnosis</label>
+                                            <input type="text" id="diagnosis" placeholder="Enter diagnosis" onchange="updatePrescriptionPreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Notes</label>
+                                            <input type="text" id="prescriptionNotes" placeholder="Additional notes" onchange="updatePrescriptionPreview()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section medicines-section">
+                                    <div class="section-header">
+                                        <h4>Medicines</h4>
+                                        <button type="button" class="btn-secondary" onclick="addMedicine()">
+                                            <i class="fas fa-plus"></i> Add Medicine
+                                        </button>
+                                    </div>
+                                    <div id="medicinesList" class="medicines-list">
+                                        <!-- Dynamic medicine items will be added here -->
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                <button type="button" class="btn-primary" onclick="printCurrentPrescription()">
+                                    <i class="fas fa-print"></i> Print Prescription
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="saveCurrentPrescriptionAsPDF()">
+                                    <i class="fas fa-file-pdf"></i> Save as PDF
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="clearPrescriptionForm()">
+                                    <i class="fas fa-broom"></i> Clear Form
+                                </button>
+                                </div>
+
+                            </form>
+                        </div>
+
+                        <!-- Scan Tab -->
+                        <div id="scan-tab" class="tab-content">
+                            <div class="scan-container">
+                                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <h4>Upload Prescription Image</h4>
+                                        <p>Click here to upload or drag and drop your prescription image</p>
+                                        <small>Supports JPG, PNG files up to 10MB</small>
+                                    </div>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" hidden>
+                                
+                                <div id="imagePreview" class="image-preview-container" style="display: none;">
+                                    <img id="previewImg" alt="Prescription preview">
+                                    <div class="preview-actions">
+                                        <!-- Add this temporarily in your scan tab -->
+                                        <div class="scan-actions">
+                                            <button class="btn-secondary" onclick="testTesseract()">
+                                                <i class="fas fa-vials"></i> Test OCR Engine
+                                            </button>
+                                            <button class="btn-primary" onclick="scanPrescription()">
+                                                <i class="fas fa-search"></i> Scan Prescription
+                                            </button>
+                                        </div>
+
+
+                                        <button class="btn-secondary" onclick="clearPreview()">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="scanResults" class="scan-results" style="display: none;">
+                                    <div class="scan-header">
+                                        <h4><i class="fas fa-check-circle"></i> Scan Results</h4>
+                                        <div class="scan-confidence" id="scanConfidence"></div>
+                                    </div>
+                                    <div class="extracted-text" id="extractedText"></div>
+                                    <div class="scan-actions">
+                                        <button class="btn-primary" onclick="confirmScanResults()">
+                                            <i class="fas fa-check"></i> Confirm & Save
+                                        </button>
+                                        <button class="btn-secondary" onclick="editScanResults()">
+                                            <i class="fas fa-edit"></i> Edit Results
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Page -->
+                <div id="billing" class="page">
+                    <div class="page-header">
+                        <div class="page-title">
+                            <h2>Billing & Invoice Generation</h2>
+                            <p>Create bills and generate invoices for customers</p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn-secondary" onclick="loadBills()">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                            <button class="btn-primary" onclick="clearBill()">
+                                <i class="fas fa-plus"></i> New Bill
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Bills -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3>Recent Bills</h3>
+                            <div class="filters">
+                                <input type="text" id="billSearch" placeholder="Search bills..." class="search-input">
+                                <select id="paymentStatusFilter" class="filter-select">
+                                    <option value="">All Payment Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="partially-paid">Partially Paid</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="bills-list" id="billsList">
+                            <div class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading bills...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bill Preview Template (hidden) -->
+                    <div id="billTemplate" class="bill-template" style="display: none;">
+                        <div class="bill-header-template">
+                            <div class="company-info">
+                                <h1>Drug-Sync Nexus Pharmacy</h1>
+                                <p>123 Medical Street, Healthcare City - 123456</p>
+                                <p>Phone: +91-9876543210 | Email: info@drugsyncnexus.com</p>
+                                <p>GST No: 12ABCDE3456F7GH | License No: DL-12345</p>
+                            </div>
+                            <div class="bill-details">
+                                <h2>INVOICE</h2>
+                                <p><strong>Bill No:</strong> <span id="templateBillId"></span></p>
+                                <p><strong>Date:</strong> <span id="templateBillDate"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="customer-details-template">
+                            <h3>Bill To:</h3>
+                            <p><strong>Name:</strong> <span id="templateCustomerName"></span></p>
+                            <p><strong>Phone:</strong> <span id="templateCustomerPhone"></span></p>
+                            <p><strong>Email:</strong> <span id="templateCustomerEmail"></span></p>
+                        </div>
+                        
+                        <table class="bill-items-template">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Batch</th>
+                                    <th>Qty</th>
+                                    <th>Rate</th>
+                                    <th>Discount</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="templateBillItems">
+                            </tbody>
+                        </table>
+                        
+                        <div class="bill-summary-template">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="templateSubtotal">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Discount:</span>
+                                <span id="templateDiscount">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax (GST 12%):</span>
+                                <span id="templateTax">₹0.00</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Grand Total:</span>
+                                <span id="templateGrandTotal">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Amount Paid:</span>
+                                <span id="templateAmountPaid">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Change:</span>
+                                <span id="templateChange">₹0.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bill-footer-template">
+                            <p><strong>Payment Method:</strong> <span id="templatePaymentMethod"></span></p>
+                            <br>
+                            <p>Thank you for your business!</p>
+                            <p class="terms">Terms & Conditions Apply</p>
+                        </div>
+                    </div>
+
+                    <!-- Billing Form -->
+                    <div class="content-card billing-form-card">
+                        <div class="card-header">
+                            <h3>Create New Bill</h3>
+                        </div>
+                        
+                        <div class="billing-form">
+                            <div class="form-section">
+                                <h4>Customer Information</h4>
+                                <div class="form-grid">
+                                    <div class="input-group">
+                                        <label>Customer Name *</label>
+                                        <input type="text" id="customerName" placeholder="Enter customer name" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Phone Number</label>
+                                        <input type="tel" id="customerPhone" placeholder="Enter phone number">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Email</label>
+                                        <input type="email" id="customerEmail" placeholder="Enter email address">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Payment Method *</label>
+                                        <select id="paymentMethod" required>
+                                            <option value="">Select Payment Method</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="card">Card</option>
+                                            <option value="upi">UPI</option>
+                                            <option value="net-banking">Net Banking</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="section-header">
+                                    <h4>Items</h4>
+                                    <button type="button" class="btn-secondary" onclick="addBillingItem()">
+                                        <i class="fas fa-plus"></i> Add Item
+                                    </button>
+                                </div>
+                                <div class="billing-table-container">
+                                    <table class="billing-table" id="billingTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Medicine Name</th>
+                                                <th>Batch Number</th>
+                                                <th>Quantity</th>
+                                                <th>Unit Price</th>
+                                                <th>Discount</th>
+                                                <th>Total</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="billingItemsBody">
+                                            <!-- Dynamic billing items -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="billing-summary">
+                                <div class="summary-row">
+                                    <span>Subtotal:</span>
+                                    <span id="subtotal">₹0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Total Discount:</span>
+                                    <span id="totalDiscount">₹0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Tax (12% GST):</span>
+                                    <span id="tax">₹0.00</span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span>Grand Total:</span>
+                                    <span id="grandTotal">₹0.00</span>
+                                </div>
+                                <div class="payment-info">
+                                    <div class="input-group">
+                                        <label>Amount Paid:</label>
+                                        <input type="number" id="amountPaid" step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Change:</span>
+                                        <span id="changeAmount">₹0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn-primary" onclick="generateBill()">
+                                    <i class="fas fa-file-invoice"></i> Generate Bill
+                                </button>
+                                <button class="btn-secondary" onclick="clearBill()">
+                                    <i class="fas fa-broom"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Page -->
+                <div id="inventory" class="page">
+                    <div class="page-header">
+                        <div class="page-title">
+                            <h2>Medicine Inventory</h2>
+                            <p>Manage medicine stock, expiry dates, and product information</p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn-secondary" onclick="loadMedicines()">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                            <button class="btn-primary" onclick="showAddMedicineForm()">
+                                <i class="fas fa-plus"></i> Add Medicine
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Inventory Controls -->
+                    <div class="content-card filters-card">
+                        <div class="filters-grid">
+                            <div class="search-container">
+                                <div class="input-group">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="searchMedicine" placeholder="Search medicines..." class="search-input">
+                                </div>
+                                <button type="button" class="btn-search" onclick="searchMedicines()">
+                                    <i class="fas fa-search"></i>
+                                    Search
+                                </button>
+                            </div>
+                            <select id="categoryFilter" class="filter-select" onchange="filterMedicines()">
+                                <option value="">All Categories</option>
+                                <option value="tablet">Tablets</option>
+                                <option value="syrup">Syrups</option>
+                                <option value="injection">Injections</option>
+                                <option value="cream">Creams</option>
+                                <option value="antibiotic">Antibiotics</option>
+                                <option value="drops">Drops</option>
+                                <option value="powder">Powders</option>
+                            </select>
+                            <select id="stockStatusFilter" class="filter-select" onchange="filterMedicines()">
+                                <option value="">All Stock Status</option>
+                                <option value="in-stock">In Stock</option>
+                                <option value="low-stock">Low Stock</option>
+                                <option value="out-of-stock">Out of Stock</option>
+                            </select>
+                            <button type="button" class="btn-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Clear Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div class="inventory-alerts">
+                        <div class="alert-card low-stock-card">
+                            <div class="alert-header">
+                                <h4><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h4>
+                            </div>
+                            <div id="lowStockAlerts" class="alert-list">
+                                <div class="loading-state">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Loading alerts...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-card expiring-card">
+                            <div class="alert-header">
+                                <h4><i class="fas fa-calendar-times"></i> Expiring Soon</h4>
+                            </div>
+                            <div id="expiringAlerts" class="alert-list">
+                                <div class="loading-state">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Loading alerts...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicine Grid -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3>Medicine Inventory</h3>
+                            <div class="view-options">
+                                <button class="view-btn active" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-btn" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="medicine-grid" id="medicineGrid">
+                            <div class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading medicines...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Add Medicine Modal -->
+        <div id="addMedicineModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> <span id="medicineModalTitle">Add New Medicine</span></h3>
+                    <button class="close-btn" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form class="medicine-form" id="medicineForm">
+                    <input type="hidden" id="medicineEditId">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Medicine Name *</label>
+                            <input type="text" id="medicineName" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Generic Name</label>
+                            <input type="text" id="genericName">
+                        </div>
+                        <div class="input-group">
+                            <label>Brand</label>
+                            <input type="text" id="medicineBrand">
+                        </div>
+                        <div class="input-group">
+                            <label>Category *</label>
+                            <select id="medicineCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="tablet">Tablet</option>
+                                <option value="syrup">Syrup</option>
+                                <option value="injection">Injection</option>
+                                <option value="cream">Cream</option>
+                                <option value="antibiotic">Antibiotic</option>
+                                <option value="drops">Drops</option>
+                                <option value="powder">Powder</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Dosage *</label>
+                            <input type="text" id="medicineDosage" placeholder="e.g., 500mg" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Strength *</label>
+                            <input type="text" id="medicineStrength" placeholder="e.g., 500mg" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Manufacturer *</label>
+                            <input type="text" id="medicineManufacturer" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Batch Number *</label>
+                            <input type="text" id="batchNumber" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Manufacturing Date *</label>
+                            <input type="date" id="mfdDate" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Expiry Date *</label>
+                            <input type="date" id="expDate" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Current Stock *</label>
+                            <input type="number" id="currentStock" min="0" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Minimum Stock Level</label>
+                            <input type="number" id="minStock" min="0" value="10">
+                        </div>
+                        <div class="input-group">
+                            <label>Purchase Price (₹) *</label>
+                            <input type="number" id="purchasePrice" step="0.01" min="0" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Selling Price (₹) *</label>
+                            <input type="number" id="sellingPrice" step="0.01" min="0" required>
+                        </div>
+                        <div class="input-group">
+                            <label>MRP (₹) *</label>
+                            <input type="number" id="medicineMrp" step="0.01" min="0" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Prescription Required</label>
+                            <select id="prescriptionRequired">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group full-width">
+                        <label>Description</label>
+                        <textarea id="medicineDescription" rows="3" placeholder="Enter medicine description..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> <span id="medicineSubmitText">Add Medicine</span>
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="successToast" class="toast success-toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="successMessage">Success!</span>
+    </div>
+
+    <div id="errorToast" class="toast error-toast">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorMessage">Error!</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
